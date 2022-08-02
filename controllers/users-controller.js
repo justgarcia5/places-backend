@@ -7,7 +7,9 @@ let DUMMY_USERS = [
     id: 'u1',
     email: 'me@me.com',
     name: 'Justin Garcia',
-    password: 'password'
+    password: 'password',
+    image: 'https://www.yosemite.com/wp-content/uploads/2016/04/Glacier-Point-Yosemite.jpg',
+    places: 3
   }
 ];
 
@@ -26,7 +28,7 @@ const createUser = (req, res, next) => {
 
   DUMMY_USERS.push(createdUser);
 
-  res.status(201).json({ users: createdUser }) 
+  res.status(201).json({ users: createdUser })
 };
 
 const loginUser = (req, res, next) => {
