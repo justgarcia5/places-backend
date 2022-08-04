@@ -10,7 +10,15 @@ let DUMMY_USERS = [
     password: 'password',
     image: 'https://www.yosemite.com/wp-content/uploads/2016/04/Glacier-Point-Yosemite.jpg',
     places: 3
-  }
+  },
+  {
+    id: 'u2',
+    email: 'george@me.com',
+    name: 'George Harrison',
+    password: 'beatles',
+    image: 'https://images.saymedia-content.com/.image/t_share/MTc0MTkyOTk3MzI2Mzk4OTcy/george-harrison-the-spiritual-beatle.png',
+    places: 1
+  },
 ];
 
 const getUsers = (req, res, next) => {
