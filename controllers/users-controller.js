@@ -27,6 +27,11 @@ const getUsers = (req, res, next) => {
 
 const createUser = (req, res, next) => {
   const { email, name, password } = req.body;
+  const hasUser = DUMMY_USERS.find(u => u.email === email) 
+  if (hasUser) {
+    return next(new HttpError('Could not create user. User already exists.', 422));
+  }
+
   const createdUser = {
     id: uuid.v4(),
     email,
@@ -45,7 +50,7 @@ const loginUser = (req, res, next) => {
   const idUser = DUMMY_USERS.find(user => email === user.email);
 
   if (!idUser || idUser.password !== password) {
-    return new HttpError('Could not find identified user. Credentials seem to be wrong.', 401);
+    return next(new HttpError('Could not find identified user. Credentials seem to be wrong.', 401));
   }
 
   res.json({ message: "logged in." })
