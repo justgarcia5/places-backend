@@ -2,6 +2,7 @@ const uuid = require('uuid');
 const { validationResult } = require('express-validator');
 
 const HttpError = require('../models/http-error');
+const getCoordsForAdress = require('../util/location');
 
 let DUMMY_PLACES = [
   {
@@ -44,7 +45,7 @@ let DUMMY_PLACES = [
 
 const getPlaceById = (req, res, next) => {
   const placeId = req.params.pid;
-
+  
   const place = DUMMY_PLACES.find(p => {
     return p.id === placeId;
   });
@@ -72,15 +73,20 @@ const getPlacesByUserId = (req, res, next) => {
 };
 
 
-const createPlace = (req, res, next) => {
+const createPlace = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    console.log(errors)
-
-    return next(new HttpError('Invalid inputes passed, please check your data.', 422));
+    return next(new HttpError('Invalid inputs passed, please check your data.', 422));
   }
 
-  const { title, description, coordinates, address, creator } = req.body;
+  const { title, description, address, creator } = req.body;
+
+  let coordinates;
+  try {
+    coordinates = await getCoordsForAdress(address);
+  } catch (error) {
+    return next(error);
+  }
 
   const createdPlace = {
     id: uuid.v4(),
@@ -88,32 +94,41 @@ const createPlace = (req, res, next) => {
     description,
     location: coordinates,
     address,
-    creator
+    creator: 'u1'
   };
 
   DUMMY_PLACES.push(createdPlace); //unshift(createdPlace)
-
   res.status(201).json({ place: createdPlace });
 };
 
 const updatePlace = (req, res, next) => {
-  const { title, description } = req.body;
+  const { title, description, address } = req.body;
   const placeId = req.params.pid
+
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return next(new HttpError('Invalid inputes passed, please check your data.', 422));
+  }
 
   const updatedPlace = { ...DUMMY_PLACES.find(p => p.id === placeId) };
   const placeIndex = DUMMY_PLACES.findIndex(p => p.id === placeId);
   updatedPlace.title = title;
   updatedPlace.description = description
+  updatedPlace.address = address
 
   DUMMY_PLACES[placeIndex] = updatePlace;
-
   res.status(200).json({ place: updatedPlace });
 }
 
 const deletePlace = (req, res, next) => {
   const placeId = req.params.pid
-  DUMMY_PLACES = DUMMY_PLACES.filter(place => place.id !== placeId);
+  const isDeleted = !DUMMY_PLACES.find(p => p.id === placeId);
+  if (isDeleted) {
+    console.log('hello')
+    return next(new HttpError('Could not find place for that id.', 404));
+  }
 
+  DUMMY_PLACES = DUMMY_PLACES.filter(place => place.id !== placeId);
   res.status(200).json({ message: "Deleted place." });
 };
 
