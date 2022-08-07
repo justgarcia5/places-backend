@@ -1,10 +1,16 @@
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
+
+require('dotenv').config();
+
 const HttpError = require('./models/http-error');
 
 const placesRouter = require('./routes/places-routes');
 const usersRouter = require('./routes/users-routes');
+
+const mongoPassword = process.env.MONGO_PASSWORD;
 
 const app = express();
 app.use(cors());
@@ -29,4 +35,11 @@ app.use((error, req, res, next) => {
     .json({ message: error.message || 'An unkown error occured!' });
 });
 
-app.listen(5000);
+mongoose
+  .connect(`mongodb+srv://justgarcia:${mongoPassword}@cluster0.c9ltudl.mongodb.net/places_app?retryWrites=true&w=majority`)
+  .then(() => {
+    app.listen(5000);
+  })
+  .catch(() => {
+    console.log('Connection failed.')
+  });
