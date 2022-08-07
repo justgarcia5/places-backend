@@ -1,15 +1,20 @@
 // const uuid = require('uuid');
 const { validationResult } = require('express-validator');
 
+require('dotenv').config();
+
 const HttpError = require('../models/http-error');
 const getCoordsForAdress = require('../util/location');
 
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const mongoose = require('mongoose');
 const Place = require('../models/place');
+const mongoPassword = process.env.MONGO_PASSWORD;
+
+console.log(mongoPassword)
 
 mongoose.connect(
-  'mongodb+srv://justgarcia:Predators8@cluster0.c9ltudl.mongodb.net/?retryWrites=true&w=majority'
+  `mongodb+srv://justgarcia:${mongoPassword}@cluster0.c9ltudl.mongodb.net/?retryWrites=true&w=majority`
   ).then(() => {
     console.log('MongoDB is connected.')
   }).catch(() => {
