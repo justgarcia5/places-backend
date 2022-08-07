@@ -11,7 +11,7 @@ const Place = require('../models/place');
 mongoose.connect(
   'mongodb+srv://justgarcia:Predators8@cluster0.c9ltudl.mongodb.net/?retryWrites=true&w=majority'
   ).then(() => {
-    console.log('Server is connected.')
+    console.log('MongoDB is connected.')
   }).catch(() => {
     console.log('Connection failed.')
   });
@@ -57,16 +57,12 @@ let DUMMY_PLACES = [
 
 const getPlaceById = async (req, res, next) => {
   const placeId = req.params.pid;
-  const client = new MongoClient(url);
   let filteredPlaces;
   try {
-    await client.connect();
-    const db = client.db();
-    filteredPlaces = await db.collection('places').find({ id: placeId }).toArray();
+    filteredPlaces = await Place.findById(placeId)
   } catch (error) {
     return next(new HttpError('Could not find a place for the provided id.', 404));
   };
-  client.close();
 
   res.json({ places: filteredPlaces });
 };
