@@ -1,8 +1,20 @@
-const uuid = require('uuid');
+// const uuid = require('uuid');
 const { validationResult } = require('express-validator');
 
 const HttpError = require('../models/http-error');
 const getCoordsForAdress = require('../util/location');
+
+const { MongoClient, ServerApiVersion } = require('mongodb');
+const mongoose = require('mongoose');
+const Place = require('../models/place');
+
+mongoose.connect(
+  'mongodb+srv://justgarcia:Predators8@cluster0.c9ltudl.mongodb.net/?retryWrites=true&w=majority'
+  ).then(() => {
+    console.log('Server is connected.')
+  }).catch(() => {
+    console.log('Connection failed.')
+  });
 
 let DUMMY_PLACES = [
   {
@@ -43,18 +55,20 @@ let DUMMY_PLACES = [
   }
 ];
 
-const getPlaceById = (req, res, next) => {
+const getPlaceById = async (req, res, next) => {
   const placeId = req.params.pid;
-  
-  const place = DUMMY_PLACES.find(p => {
-    return p.id === placeId;
-  });
-
-  if (!place) {
+  const client = new MongoClient(url);
+  let filteredPlaces;
+  try {
+    await client.connect();
+    const db = client.db();
+    filteredPlaces = await db.collection('places').find({ id: placeId }).toArray();
+  } catch (error) {
     return next(new HttpError('Could not find a place for the provided id.', 404));
-  }
+  };
+  client.close();
 
-  res.json({ place });
+  res.json({ places: filteredPlaces });
 };
 
 const getPlacesByUserId = (req, res, next) => {
@@ -72,7 +86,6 @@ const getPlacesByUserId = (req, res, next) => {
   res.json({ places });
 };
 
-
 const createPlace = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -88,17 +101,29 @@ const createPlace = async (req, res, next) => {
     return next(error);
   }
 
-  const createdPlace = {
-    id: uuid.v4(),
+  const createdPlace = new Place({
+    // id: uuid.v4(),
     title,
     description,
     location: coordinates,
     address,
-    creator: 'u1'
-  };
+    creator
+  });
 
-  DUMMY_PLACES.push(createdPlace); //unshift(createdPlace)
-  res.status(201).json({ place: createdPlace });
+  const result = await createdPlace.save();
+
+  // const client = new MongoClient(url);
+
+  // try {
+  //   await client.connect();
+  //   const db = client.db();
+  //   await db.collection('places').insertOne(createdPlace);
+  // } catch (error) {
+  //   return next(new HttpError('Could not store data.', 422));
+  // };
+  // client.close();
+
+  res.status(201).json(result);
 };
 
 const updatePlace = (req, res, next) => {
