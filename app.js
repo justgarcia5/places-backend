@@ -17,6 +17,15 @@ app.use(cors());
 
 app.use(bodyParser.json());
 
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE');
+
+  next();
+});
+
 app.use('/api/places', placesRouter);
 app.use('/api/users', usersRouter);
 
@@ -37,9 +46,10 @@ app.use((error, req, res, next) => {
 
 mongoose
   .connect(`mongodb+srv://justgarcia:${mongoPassword}@cluster0.c9ltudl.mongodb.net/?retryWrites=true&w=majority`)
-  .then(() => {
+  .then((res) => {
     app.listen(5000);
   })
-  .catch(() => {
+  .catch((err) => {
+    console.log(err)
     console.log('Connection failed.')
   });
